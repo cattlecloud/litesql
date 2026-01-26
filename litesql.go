@@ -27,20 +27,14 @@ var (
 	}
 )
 
-const (
-	// Latest is a sentinel value for retrieving the latest entries of rows in
-	// a database table. Only applies to tables using autoincrement as the
-	// primary key.
-	//
-	// We chop the left bit because the sqlite driver does not want the MSB
-	// being set. Not sure why.
-	Latest = 0x7FFFFFFFFFFFFFFF
-)
-
+// LiteDB is an interface over a sqlite3 database providing reasonable default
+// values and an easy-to-use set of APIs for efficient and performant access.
 type LiteDB struct {
 	db *sql.DB
 }
 
+// Open the database of the given filename, using config to tune the PRAGMA
+// values and connection string parameters.
 func Open(filename string, config *Configuration) (*LiteDB, error) {
 	ctx, cancel := scope.TTL(10 * time.Second)
 	defer cancel()
@@ -71,9 +65,15 @@ func Open(filename string, config *Configuration) (*LiteDB, error) {
 		return nil, fmt.Errorf("litesql: unable to set mmap_size: %w", err)
 	}
 
+	// set connection behaviors; max conns is defacto read concurrency
+	db.SetMaxOpenConns(config.MaxConnectionsOpen)
+	db.SetConnMaxIdleTime(0) // disable
+	db.SetConnMaxLifetime(0) // disable
+
 	return &LiteDB{db: db}, nil
 }
 
+// Close the underlying database.
 func (ldb *LiteDB) Close() error {
 	return ldb.db.Close()
 }
