@@ -15,19 +15,17 @@ const (
 )
 
 var testConfiguration = &Configuration{
-	Mode:                   "rwc",
-	Encoding:               "utf8",
-	BusyTimeout:            1000,
-	TransactionLock:        "immediate",
-	ForeignKeys:            true,
-	JournalMode:            "OFF",
-	CacheSize:              -4000,
-	AutoVacuum:             "incremental",
-	Synchronous:            "normal",
-	MemoryMapSize:          0,
-	MaxConnectionsOpen:     1,
-	MaxConnectionsIdleTime: 0,
-	MaxConnectionsLifeTime: 0,
+	Mode:               "rwc",
+	Encoding:           "utf8",
+	BusyTimeout:        1000,
+	TransactionLock:    "immediate",
+	ForeignKeys:        true,
+	JournalMode:        "OFF",
+	CacheSize:          -4000,
+	AutoVacuum:         "incremental",
+	Synchronous:        "normal",
+	MemoryMapSize:      0,
+	MaxConnectionsOpen: 1,
 }
 
 type user struct {
