@@ -1,4 +1,6 @@
-package libsqltest
+// Package libsqltest enables convenient testing with a real sqlite3 database
+// backed by memory for use in unit tests.
+package litesqltest
 
 import (
 	"testing"
@@ -10,6 +12,10 @@ import (
 
 const timeout = 3 * time.Second
 
+// TestConfiguration provides PRAGMA settings appropriate for an in-memory
+// database used in unit tests.
+//
+// Do not modify.
 var TestConfiguration = &litesql.Configuration{
 	Mode:                   "rwc",
 	Encoding:               "utf8",
@@ -17,10 +23,10 @@ var TestConfiguration = &litesql.Configuration{
 	TransactionLock:        "immediate",
 	ForeignKeys:            true,
 	JournalMode:            "OFF",
-	CacheSize:              -65536,
+	CacheSize:              -4000,
 	AutoVacuum:             "incremental",
 	Synchronous:            "normal",
-	MemoryMapSize:          4000,
+	MemoryMapSize:          0,
 	MaxConnectionsOpen:     1,
 	MaxConnectionsIdleTime: 0,
 	MaxConnectionsLifeTime: 0,
@@ -32,12 +38,15 @@ func Open(t *testing.T) *litesql.LiteDB {
 	_, cancel := scope.WithTTL(t.Context(), timeout)
 	t.Cleanup(cancel)
 
-	filename := ":memory:"
-	ldb, oerr := litesql.Open(filename, litesql.TypicalConfiguration)
+	const filename = ":memory:"
+
+	ldb, oerr := litesql.Open(filename, TestConfiguration)
 	if oerr != nil {
 		t.Log("unable to open database: " + oerr.Error())
 		t.FailNow()
 	}
+
+	t.Cleanup(func() { _ = ldb.Close() })
 
 	return ldb
 }
