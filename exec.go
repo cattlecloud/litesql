@@ -101,3 +101,50 @@ func (ldb *LiteDB) QueryRows(ctx scope.C, tx *sql.Tx, stmt string, args ...any) 
 	closer := func() { _ = cursor.Close() }
 	return cursor, closer, cerr
 }
+
+// ScanFunc represents the sql.Scan function from a sql.Rows object. This is
+// used as the scan argument of the QueryRows package function, invoked on
+// each element in the result set of the query to build the list of resulting
+// items.
+type ScanFunc func(args ...any) error
+
+// QueryRow uses the given transaction tx and the scan function to extract a
+// single row from the database, using the given stmnt query with args.
+//
+// The scan function is provided by the caller for custom extraction of column
+// values into some type T.
+func QueryRow[T any](ctx scope.C, tx *sql.Tx, scan func(ScanFunc) (*T, error), stmt string, args ...any) (*T, error) {
+	row := tx.QueryRowContext(ctx, stmt, args...)
+
+	t, terr := scan(row.Scan)
+	if terr != nil {
+		return nil, terr
+	}
+
+	return t, nil
+}
+
+// QueryRows uses the given transaction tx and the scan function to extract a
+// set of rows from the database, using the given stmnt query with args.
+//
+// The scan function is provided by the caller for custom extraction of column
+// values into some type T.
+func QueryRows[T any](ctx scope.C, tx *sql.Tx, scan func(ScanFunc) (*T, error), stmt string, args ...any) ([]*T, error) {
+	rows, rerr := tx.QueryContext(ctx, stmt, args...)
+	if rerr != nil {
+		return nil, rerr
+	}
+	defer func() { _ = rows.Close() }()
+
+	items := make([]*T, 0, 4)
+
+	for rows.Next() {
+		t, terr := scan(rows.Scan)
+		if terr != nil {
+			return nil, terr
+		}
+		items = append(items, t)
+	}
+
+	return items, rows.Err()
+}

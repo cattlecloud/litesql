@@ -30,6 +30,12 @@ var testConfiguration = &Configuration{
 	MaxConnectionsLifeTime: 0,
 }
 
+type user struct {
+	ID       int
+	Username string
+	Email    string
+}
+
 func testSimple(t *testing.T) *LiteDB {
 	t.Helper()
 
@@ -187,4 +193,81 @@ func TestLiteDB_Exec(t *testing.T) {
 
 	cerr := tx.Commit()
 	must.NoError(t, cerr)
+}
+
+func TestGlobal_QueryRow(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := scope.WithTTL(t.Context(), timeout)
+	defer cancel()
+
+	ldb := testSimple(t)
+
+	tx, xdone, xerr := ldb.StartRead(ctx)
+	must.NoError(t, xerr)
+	defer xdone()
+
+	const stmt = `
+	SELECT
+		id, username, email
+	FROM
+		users
+	WHERE
+		ID = ?`
+
+	f := func(sf ScanFunc) (*user, error) {
+		u := new(user)
+		err := sf(
+			&u.ID,
+			&u.Username,
+			&u.Email,
+		)
+		return u, err
+	}
+
+	const id = 2
+	user, uerr := QueryRow(ctx, tx, f, stmt, id)
+	must.NoError(t, uerr)
+	must.Eq(t, 2, user.ID)
+	must.Eq(t, "Beth", user.Username)
+	must.Eq(t, "beth@example.org", user.Email)
+}
+
+func TestGlobal_QueryRows(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := scope.WithTTL(t.Context(), timeout)
+	defer cancel()
+
+	ldb := testSimple(t)
+
+	tx, xdone, xerr := ldb.StartRead(ctx)
+	must.NoError(t, xerr)
+	defer xdone()
+
+	const stmt = `
+	SELECT
+		id, username, email
+	FROM
+		users
+	ORDER BY id ASC`
+
+	f := func(sf ScanFunc) (*user, error) {
+		u := new(user)
+		err := sf(
+			&u.ID,
+			&u.Username,
+			&u.Email,
+		)
+		return u, err
+	}
+
+	users, uerr := QueryRows(ctx, tx, f, stmt)
+	must.NoError(t, uerr)
+	must.SliceLen(t, 5, users)
+	must.Eq(t, &user{ID: 1, Username: "Admin", Email: "admin@example.org"}, users[0])
+	must.Eq(t, &user{ID: 2, Username: "Beth", Email: "beth@example.org"}, users[1])
+	must.Eq(t, &user{ID: 3, Username: "Carl", Email: "carl@example.org"}, users[2])
+	must.Eq(t, &user{ID: 4, Username: "David", Email: "dave@example.org"}, users[3])
+	must.Eq(t, &user{ID: 5, Username: "Eve", Email: "eve@example.org"}, users[4])
 }
