@@ -231,6 +231,35 @@ func TestGlobal_QueryRow(t *testing.T) {
 	must.Eq(t, "beth@example.org", user.Email)
 }
 
+func TestGlobal_QueryRow_int(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := scope.WithTTL(t.Context(), timeout)
+	defer cancel()
+
+	ldb := testSimple(t)
+
+	tx, xdone, xerr := ldb.StartRead(ctx)
+	must.NoError(t, xerr)
+	defer xdone()
+
+	const stmt = `
+	SELECT standing_id FROM users WHERE id = ?`
+
+	f := func(sf ScanFunc) (int, error) {
+		var standing int
+		err := sf(
+			&standing,
+		)
+		return standing, err
+	}
+
+	const beth = 2 // (hardcode user id)
+	standing, uerr := QueryRow(ctx, tx, f, stmt, beth)
+	must.NoError(t, uerr)
+	must.Eq(t, 3, standing)
+}
+
 func TestGlobal_QueryRows(t *testing.T) {
 	t.Parallel()
 
@@ -268,4 +297,29 @@ func TestGlobal_QueryRows(t *testing.T) {
 	must.Eq(t, &user{ID: 3, Username: "Carl", Email: "carl@example.org"}, users[2])
 	must.Eq(t, &user{ID: 4, Username: "David", Email: "dave@example.org"}, users[3])
 	must.Eq(t, &user{ID: 5, Username: "Eve", Email: "eve@example.org"}, users[4])
+}
+
+func TestGlobal_QueryRows_int(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := scope.WithTTL(t.Context(), timeout)
+	defer cancel()
+
+	ldb := testSimple(t)
+
+	tx, xdone, xerr := ldb.StartRead(ctx)
+	must.NoError(t, xerr)
+	defer xdone()
+
+	const stmt = `SELECT id FROM oauth ORDER BY id DESC`
+
+	f := func(sf ScanFunc) (int, error) {
+		var id int
+		err := sf(&id)
+		return id, err
+	}
+
+	oauths, oerr := QueryRows(ctx, tx, f, stmt)
+	must.NoError(t, oerr)
+	must.Eq(t, []int{4, 3, 2, 1}, oauths)
 }
