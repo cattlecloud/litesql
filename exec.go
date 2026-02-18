@@ -113,12 +113,13 @@ type ScanFunc func(args ...any) error
 //
 // The scan function is provided by the caller for custom extraction of column
 // values into some type T.
-func QueryRow[T any](ctx scope.C, tx *sql.Tx, scan func(ScanFunc) (*T, error), stmt string, args ...any) (*T, error) {
+func QueryRow[T any](ctx scope.C, tx *sql.Tx, scan func(ScanFunc) (T, error), stmt string, args ...any) (T, error) {
 	row := tx.QueryRowContext(ctx, stmt, args...)
 
 	t, terr := scan(row.Scan)
 	if terr != nil {
-		return nil, terr
+		var zero T
+		return zero, terr
 	}
 
 	return t, nil
@@ -129,14 +130,14 @@ func QueryRow[T any](ctx scope.C, tx *sql.Tx, scan func(ScanFunc) (*T, error), s
 //
 // The scan function is provided by the caller for custom extraction of column
 // values into some type T.
-func QueryRows[T any](ctx scope.C, tx *sql.Tx, scan func(ScanFunc) (*T, error), stmt string, args ...any) ([]*T, error) {
+func QueryRows[T any](ctx scope.C, tx *sql.Tx, scan func(ScanFunc) (T, error), stmt string, args ...any) ([]T, error) {
 	rows, rerr := tx.QueryContext(ctx, stmt, args...)
 	if rerr != nil {
 		return nil, rerr
 	}
 	defer func() { _ = rows.Close() }()
 
-	items := make([]*T, 0, 4)
+	items := make([]T, 0, 8)
 
 	for rows.Next() {
 		t, terr := scan(rows.Scan)
