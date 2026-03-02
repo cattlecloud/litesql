@@ -48,7 +48,7 @@ for abstracting much of the boiler-plate code for reading rows. By supplying
 a `ScanFunc`, you can fetch row(s) without managing most of the query logic.
 
 ```go
-func example(id int) ([]record, error) {
+func example(id int) ([]*record, error) {
   tx, done, xerr := db.StartRead(ctx)
   if xerr != nil {
     return nil, xerr
