@@ -22,6 +22,16 @@ const (
 	ExpectOneOrZero
 )
 
+const (
+	// ExpectNone indicates no rows should be updated as a result of executing
+	// a statement.
+	ExpectNone = 0
+
+	// ExpectOne indicates exactly one row should be updated as a result of
+	// executing a statement.
+	ExpectOne = 1
+)
+
 // ExecID executes the given sql query statement with args, and returns the
 // resulting row id. The query must be intended to insert/modify exactly one
 // row.
