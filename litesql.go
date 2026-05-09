@@ -27,7 +27,7 @@ var (
 	}
 )
 
-// LiteDB is an interface over a sqlite3 database providing reasonable default
+// LiteDB is a library around an sqlite3 database providing reasonable default
 // values and an easy-to-use set of APIs for efficient and performant access.
 type LiteDB struct {
 	db *sql.DB

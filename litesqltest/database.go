@@ -13,7 +13,9 @@ import (
 const timeout = 3 * time.Second
 
 // TestConfiguration provides PRAGMA settings appropriate for an in-memory
-// database used in unit tests.
+// database used in unit tests. This configuration disables durability features
+// (like WAL mode and synchronous=full) to maximize performance for tests that
+// do not require crash recovery guarantees.
 //
 // Do not modify.
 var TestConfiguration = &litesql.Configuration{
