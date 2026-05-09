@@ -4,9 +4,8 @@
 [![License](https://img.shields.io/github/license/cattlecloud/litesql?color=7C00D8&style=flat-square&label=License)](https://github.com/cattlecloud/litesql/blob/main/LICENSE)
 [![Build](https://img.shields.io/github/actions/workflow/status/cattlecloud/litesql/ci.yaml?style=flat-square&color=0FAA07&label=Tests)](https://github.com/cattlecloud/litesql/actions/workflows/ci.yaml)
 
-The `litesql` Go library provides a convenient interface for working with
-SQLite3 in Go programs, so that they are reliable and performant, by making
-use of reasonable defaults and providing an easy API to build on top of.
+`litesql` is a Go library for working with SQLite3, providing reasonable
+defaults and an easy-to-use API for reliable and performant database access.
 
 ### Getting Started
 
@@ -31,7 +30,7 @@ and fine-tune parameters for each use case.
 ```go
 db, err := litesql.Open("/path/to/file", litesql.TypicalConfiguration)
 // ...
-db.Close()
+defer db.Close()
 ```
 
 #### Starting SQLite transactions
@@ -40,6 +39,31 @@ The `*LiteDB` returned by `Open` provides `StartRead` and `StartWrite` for
 starting a read or write transaction. They make use of the `ReadConsistency`
 and `WriteConsistency` package values to indicate isolation levels. A write
 transaction must be ended with a call to `Commit`.
+
+```go
+// read transaction
+tx, done, xerr := db.StartRead(ctx)
+if xerr != nil {
+    return xerr
+}
+defer done()
+
+// ... use tx to execute queries ...
+```
+
+```go
+// write transaction
+tx, done, xerr = db.StartWrite(ctx)
+if xerr != nil {
+    return xerr
+}
+defer done()
+
+// ... use tx to execute statements ...
+
+// commit the write transaction
+return tx.Commit()
+```
 
 #### Query rows
 
@@ -80,9 +104,11 @@ indicating certain special cases. The `ExecID` method expects one row to be
 changed, and will return the `ROWID` of the affected (or added) row.
 
 ```go
-ExpectAnything // do not enforce any expecation on number of rows changed
-ExpectNonZero // at least one row must be changed
-ExpectOneOrZero // exactly 0 or 1 row must be changed, useful for upserts
+ExpectAnything   // do not enforce any expecation on number of rows changed
+ExpectNonZero    // at least one row must be changed
+ExpectOneOrZero  // exactly 0 or 1 row must be changed, useful for upserts
+ExpectOne        // exactly 1 row must be changed
+ExpectNone       // exactly 0 rows must be changed
 ```
 
 A simple update example.
@@ -118,6 +144,29 @@ for k, v := range m {
   fmt.Println("pragma", k, "value", v)
 }
 ```
+
+#### Creating a snapshot
+
+The `Snapshot` method creates a point-in-time copy of the database, useful
+for backups or creating read-only copies for sharing. Snapshots are copied
+page-by-page using SQLite's backup API, with configurable `Step` and `Gap`
+options to control concurrency with writers.
+
+```go
+err := db.Snapshot(&litesql.SnapshotOptions{
+    Directory:  "/path/to/snapshots",        // where to write the snapshot
+    Retention:  3,                           // keep last 3 snapshots
+    Step:       100,                         // copy 100 pages per step
+    Gap:        1 * time.Millisecond,       // wait between steps
+    Progress: func(pages, remaining int) {
+        fmt.Printf("progress: %d/%d pages\n", pages-remaining, pages)
+    },
+})
+```
+
+The snapshot files are named `snapshot-<timestamp>.db` in the specified
+directory, and older files are automatically cleaned up according to the
+`Retention` policy.
 
 ### License
 
