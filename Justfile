@@ -2,7 +2,6 @@ set shell := ["bash", "-u", "-c"]
 
 # export environment variables
 export GOBIN := `echo $PWD/.bin`
-export GOTOOLCHAIN := 'go1.25.6'
 export scripts := ".github/workflows/scripts"
 
 # print available commands
@@ -44,4 +43,4 @@ tidy:
 # locally install build tools
 [group('setup')]
 init:
-    go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.8.0
+    go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.12.2

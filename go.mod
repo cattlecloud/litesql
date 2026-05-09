@@ -1,10 +1,12 @@
 module cattlecloud.net/go/litesql
 
-go 1.25
+go 1.26
 
 require (
 	cattlecloud.net/go/scope v1.2.1
+	github.com/hashicorp/go-set/v3 v3.0.1
 	github.com/mattn/go-sqlite3 v1.14.44
+	github.com/shoenig/lang v0.0.8
 	github.com/shoenig/test v1.13.2
 )
 
