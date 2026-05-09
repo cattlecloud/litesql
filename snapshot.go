@@ -196,7 +196,7 @@ func (ldb *LiteDB) cleanup(opts *SnapshotOptions) error {
 
 	tree := set.TreeSetFrom(matches, cmp.Compare[string])
 	remove := max(0, tree.Size()-opts.Retention-1)
-	deletions := tree.BottomK(remove)
+	deletions := tree.TopK(remove)
 
 	for _, filename := range deletions {
 		_ = os.Remove(filename)
