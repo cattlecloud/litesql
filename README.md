@@ -168,6 +168,18 @@ The snapshot files are named `snapshot-<timestamp>.db` in the specified
 directory, and older files are automatically cleaned up according to the
 `Retention` policy.
 
+#### Sanitizing FTS5 queries
+
+SQLite FTS5 uses special control characters (`*`, `:`, `^`, `"`, etc.) that can
+cause query errors or allow malicious query injection. Use `SanitizeFTS5` to
+strip these characters before passing user input to an FTS5 query.
+
+```go
+query := "hello world*"                  // prefix-operator performance implications
+sanitized := litesql.SanitizeFTS5(query) // removes fts5 control characters
+fmt.Println(sanitized)                   // "hello world"
+```
+
 ### License
 
 The `cattlecloud.net/go/litesql` module is opensource under the [BSD-3-Clause](LICENSE) license.
