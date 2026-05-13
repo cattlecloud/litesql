@@ -180,6 +180,43 @@ sanitized := litesql.SanitizeFTS5(query) // removes fts5 control characters
 fmt.Println(sanitized)                   // "hello world"
 ```
 
+#### Database Maintenance
+
+The `*LiteDB` provides three methods for database maintenance: `Optimize`,
+`Analyze`, and `Vacuum`. Each serves a different purpose and should be run at
+different intervals.
+
+**Optimize** updates internal schema metadata used by the query planner. It
+should be called periodically (e.g., weekly or after bulk inserts/deletes) to
+maintain optimal query performance. The operation is fast and non-blocking.
+
+```go
+err := db.Optimize(ctx)
+```
+
+**Analyze** gathers statistics about table and index data distribution. These
+statistics help the query planner choose efficient execution plans. Run after
+significant data changes (e.g., large inserts, deletes, or bulk updates) to
+ensure the planner has accurate information. Fast and non-blocking.
+
+```go
+err := db.Analyze(ctx)
+```
+
+**Vacuum** rebuilds the database file, reclaiming unused space and
+defragmenting data. It should be run sparingly (e.g., monthly or after many
+deletions) as it requires exclusive database access and can be slow for large
+databases. Improves performance by reducing file size and greatly improving
+sequential I/O efficiency.
+
+```go
+err := db.Vacuum(ctx)
+```
+
+A common maintenance schedule is to run `Optimize` daily or weekly, `Analyze`
+after large data changes, and `Vacuum` monthly or after a large number of
+delete operations.
+
 ### License
 
 The `cattlecloud.net/go/litesql` module is opensource under the [BSD-3-Clause](LICENSE) license.
