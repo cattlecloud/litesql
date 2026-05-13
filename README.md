@@ -182,11 +182,11 @@ fmt.Println(sanitized)                   // "hello world"
 
 #### Database Maintenance
 
-The `*LiteDB` provides three methods for database maintenance: `Optimize`,
+A `*LiteDB` provides three methods for database maintenance: `Optimize`,
 `Analyze`, and `Vacuum`. Each serves a different purpose and should be run at
 different intervals.
 
-**Optimize** updates internal schema metadata used by the query planner. It
+`Optimize` updates internal schema metadata used by the query planner. It
 should be called periodically (e.g., weekly or after bulk inserts/deletes) to
 maintain optimal query performance. The operation is fast and non-blocking.
 
@@ -194,7 +194,7 @@ maintain optimal query performance. The operation is fast and non-blocking.
 err := db.Optimize(ctx)
 ```
 
-**Analyze** gathers statistics about table and index data distribution. These
+`Analyze` gathers statistics about table and index data distribution. These
 statistics help the query planner choose efficient execution plans. Run after
 significant data changes (e.g., large inserts, deletes, or bulk updates) to
 ensure the planner has accurate information. Fast and non-blocking.
@@ -203,7 +203,7 @@ ensure the planner has accurate information. Fast and non-blocking.
 err := db.Analyze(ctx)
 ```
 
-**Vacuum** rebuilds the database file, reclaiming unused space and
+`Vacuum` rebuilds the database file, reclaiming unused space and
 defragmenting data. It should be run sparingly (e.g., monthly or after many
 deletions) as it requires exclusive database access and can be slow for large
 databases. Improves performance by reducing file size and greatly improving
