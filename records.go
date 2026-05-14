@@ -27,6 +27,6 @@ func (id ID) String() string {
 	case TxFailure:
 		return "tx-failure"
 	default:
-		return fmt.Sprintf("id:%d", id)
+		return fmt.Sprintf("%d", id)
 	}
 }
