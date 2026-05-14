@@ -15,7 +15,7 @@ func TestID_String(t *testing.T) {
 	}{
 		{
 			value: 1,
-			exp:   "id:1",
+			exp:   "1",
 		},
 		{
 			value: ExecFailure,
