@@ -23,7 +23,7 @@ var (
 	// Do not modify unless you are fully aware of the consequences.
 	WriteConsistency = &sql.TxOptions{
 		ReadOnly:  false,
-		Isolation: sql.LevelWriteCommitted,
+		Isolation: sql.LevelSerializable,
 	}
 )
 
