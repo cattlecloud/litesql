@@ -123,19 +123,25 @@ func (ldb *LiteDB) Snapshot(ctx scope.C, opts *SnapshotOptions) error {
 	})
 }
 
-func (ldb *LiteDB) uri(directory string, now time.Time) string {
+func (ldb *LiteDB) uri(directory string, now time.Time) (string, string) {
 	parameters := strings.Join([]string{
 		"mode=rwc",
 		"encoding=utf8",
 		"_txlock=immediate",
 		"_foreign_keys=true",
 	}, "&")
-	uri := fmt.Sprintf("file:%s/snapshot-%d.db?%s", directory, now.Unix(), parameters)
-	return uri
+	file := fmt.Sprintf("%s/snapshot-%d.db", directory, now.Unix())
+	uri := fmt.Sprintf("file:%s?%s", file, parameters)
+	return file, uri
 }
 
 func (ldb *LiteDB) create(ctx scope.C, opts *SnapshotOptions, now time.Time, scon *sqlite3.SQLiteConn) error {
-	uri := ldb.uri(opts.Directory, now)
+	file, uri := ldb.uri(opts.Directory, now)
+
+	if err := ldb.touch(file); err != nil {
+		return fmt.Errorf("unable to touch snapshot file: %w", err)
+	}
+
 	dc, oerr := sql.Open("sqlite3", uri)
 	if oerr != nil {
 		return fmt.Errorf("unable to create snapshot database: %w", oerr)
@@ -164,6 +170,15 @@ func (ldb *LiteDB) create(ctx scope.C, opts *SnapshotOptions, now time.Time, sco
 	}
 
 	return ldb.cleanup(opts)
+}
+
+func (ldb *LiteDB) touch(path string) error {
+	// ensure the snapshot file exists with owner-only permissions
+	file, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
+	if err != nil {
+		return err
+	}
+	return file.Close()
 }
 
 func (ldb *LiteDB) clone(primary, snapshot *sqlite3.SQLiteConn, opts *SnapshotOptions) error {
