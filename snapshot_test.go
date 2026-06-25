@@ -1,6 +1,7 @@
 package litesql
 
 import (
+	"os"
 	"path/filepath"
 	"sync/atomic"
 	"testing"
@@ -56,6 +57,10 @@ func TestLiteDB_Snapshot(t *testing.T) {
 	matches, merr := filepath.Glob(filepath.Join(directory, "snapshot-*.db"))
 	must.NoError(t, merr)
 	must.SliceLen(t, 1, matches)
+
+	finfo, ferr := os.Stat(matches[0])
+	must.NoError(t, ferr)
+	must.Eq(t, 0600, finfo.Mode())
 }
 
 func TestLiteDB_SnapshotRetention(t *testing.T) {
