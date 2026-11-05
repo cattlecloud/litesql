@@ -173,11 +173,19 @@ func (ldb *LiteDB) create(ctx scope.C, opts *SnapshotOptions, now time.Time, sco
 }
 
 func (ldb *LiteDB) touch(path string) error {
+	// ensure snapshots directory exists with owner-only permissions
+	directory := filepath.Dir(path)
+	if err := os.MkdirAll(directory, 0700); err != nil {
+		return err
+	}
+
 	// ensure the snapshot file exists with owner-only permissions
 	file, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
 	if err != nil {
 		return err
 	}
+
+	// close the file; sqlite will re-open it with the existing permissions
 	return file.Close()
 }
 
