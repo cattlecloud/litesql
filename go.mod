@@ -1,6 +1,6 @@
 module cattlecloud.net/go/litesql
 
-go 1.26
+go 1.27
 
 require (
 	cattlecloud.net/go/scope v1.3.0
