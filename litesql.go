@@ -128,12 +128,7 @@ func (ldb *LiteDB) Pragmas(ctx scope.C) (map[string]string, error) {
 		row := ldb.reads.QueryRowContext(ctx, statement)
 		var value string
 		if err := row.Scan(&value); err != nil {
-			switch key {
-			case "mmap_size":
-				continue // skip; in-memory databases do not use
-			default:
-				return nil, fmt.Errorf("litesql: unable to query %q: %w", statement, err)
-			}
+			return nil, fmt.Errorf("litesql: unable to query %q: %w", statement, err)
 		}
 		result[key] = value
 	}
