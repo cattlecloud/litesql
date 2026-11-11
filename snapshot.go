@@ -221,9 +221,12 @@ func (ldb *LiteDB) cleanup(opts *SnapshotOptions) error {
 	remove := max(0, tree.Size()-opts.Retention-1)
 	deletions := tree.TopK(remove)
 
+	var errs []error
 	for _, filename := range deletions {
-		_ = os.Remove(filename)
+		if err := os.Remove(filename); err != nil && !os.IsNotExist(err) {
+			errs = append(errs, fmt.Errorf("unable to remove snapshot file %s: %w", filename, err))
+		}
 	}
 
-	return nil
+	return errors.Join(errs...)
 }
