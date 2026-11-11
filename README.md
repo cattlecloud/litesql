@@ -230,6 +230,38 @@ A common maintenance schedule is to run `Optimize` daily or weekly, `Analyze`
 after large data changes, and `Vacuum` monthly or after a large number of
 delete operations.
 
+### Testing
+
+The `litesqltest` subpackage provides helpers for writing unit tests that
+exercise a real SQLite3 database. Instead of mocking the database layer, tests
+run against a genuine on-disk database backed by a temporary file that is
+removed automatically when the test completes.
+
+```go
+import "cattlecloud.net/go/litesql/litesqltest"
+```
+
+#### Opening a test database
+
+`litesqltest.Open` creates a `*litesql.LiteDB` in a temporary directory using
+the `litesqltest.TestConfiguration` preset. That configuration keeps resource
+usage low for tests by setting a smaller page cache and disables memory-mapped
+I/O operations. Doing so preserves the same semantics (WAL journaling,
+foreign keys, transactions) as a production database.
+
+```go
+func TestUsingDatabase(t *testing.T) {
+    ldb := litesqltest.Open(t)
+    // The database is closed automatically when the test finishes.
+
+    // ... use ldb exactly as you would any *litesql.LiteDB ...
+}
+```
+
+Because the database is a real SQLite3 file rather than an in-memory mock, the
+full feature set is available to your tests, including foreign-key enforcement
+and write transactions.
+
 ### License
 
 The `cattlecloud.net/go/litesql` module is opensource under the [BSD-3-Clause](LICENSE) license.

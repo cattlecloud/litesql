@@ -26,7 +26,7 @@ var (
 		AutoVacuum:         "incremental",
 		Synchronous:        "normal",
 		MemoryMapSize:      0,
-		MaxConnectionsOpen: 4,
+		MaxConnectionsOpen: 2,
 	}
 )
 
