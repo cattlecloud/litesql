@@ -3,6 +3,7 @@ package litesql
 import (
 	"io"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -20,12 +21,12 @@ var testConfiguration = &Configuration{
 	BusyTimeout:        1000,
 	TransactionLock:    "immediate",
 	ForeignKeys:        true,
-	JournalMode:        "OFF",
+	JournalMode:        "WAL",
 	CacheSize:          -4000,
 	AutoVacuum:         "incremental",
 	Synchronous:        "normal",
 	MemoryMapSize:      0,
-	MaxConnectionsOpen: 1,
+	MaxConnectionsOpen: 4,
 }
 
 type user struct {
@@ -37,12 +38,12 @@ type user struct {
 func testSimple(t *testing.T) *LiteDB {
 	t.Helper()
 
-	// give ourselves a short timeout; all in memory
+	// give ourselves a short timeout
 	ctx, cancel := scope.WithTTL(t.Context(), timeout)
 	t.Cleanup(cancel)
 
 	// create the underlying sqlite3 database
-	ldb, oerr := Open(":memory:", testConfiguration)
+	ldb, oerr := Open(filepath.Join(t.TempDir(), "test.db"), testConfiguration)
 	must.NoError(t, oerr, must.Sprint("unable to open test database"))
 
 	// open the sample schema
