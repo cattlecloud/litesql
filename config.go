@@ -112,30 +112,32 @@ type Configuration struct {
 	MaxConnectionsOpen int
 }
 
-// TypicalConfiguration should be suitable for use by most applications, such
-// as web servers, api servers, and other general purpose scenarios. In
-// particular it sets these parameter values:
-//
-//   - encoding: utf8
-//   - journal_mode: WAL
-//   - foreign_keys: true
-//   - transaction_lock: immediate
-//   - auto_vacuum: incremental
-//   - synchronous: normal
-//   - cache_size: 16 megabytes per connection
-//   - mmap_size: 16 megabytes per connection
-//
-// Do not modify.
-var TypicalConfiguration = &Configuration{
-	Mode:               "rwc",
-	Encoding:           "utf8",
-	BusyTimeout:        5000,
-	TransactionLock:    "immediate",
-	ForeignKeys:        true,
-	JournalMode:        "WAL",
-	CacheSize:          -16384,
-	AutoVacuum:         "incremental",
-	Synchronous:        "normal",
-	MemoryMapSize:      16777216,
-	MaxConnectionsOpen: 4,
-}
+var (
+	// TypicalConfiguration should be suitable for use by most applications, such
+	// as web servers, api servers, and other general purpose scenarios. In
+	// particular it sets these parameter values:
+	//
+	//   - encoding: utf8
+	//   - journal_mode: WAL
+	//   - foreign_keys: true
+	//   - transaction_lock: immediate
+	//   - auto_vacuum: incremental
+	//   - synchronous: normal
+	//   - cache_size: 16 megabytes per connection
+	//   - mmap_size: 16 megabytes per connection
+	//
+	// Do not modify.
+	TypicalConfiguration = &Configuration{
+		Mode:               "rwc",
+		Encoding:           "utf8",
+		BusyTimeout:        5000,
+		TransactionLock:    "immediate",
+		ForeignKeys:        true,
+		JournalMode:        "WAL",
+		CacheSize:          -16384,
+		AutoVacuum:         "incremental",
+		Synchronous:        "normal",
+		MemoryMapSize:      16777216,
+		MaxConnectionsOpen: 4,
+	}
+)
