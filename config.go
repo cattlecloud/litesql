@@ -26,12 +26,17 @@ type Configuration struct {
 	// https://sqlite.org/pragma.html#pragma_busy_timeout
 	BusyTimeout int
 
-	// TransactionLock configures the locking_mode pragma. Value must be one of:
+	// TransactionLock configures the transaction lock mode. Value must be one
+	// of:
 	//
-	//  - NORMAL
-	//  - EXCLUSIVE
+	//  - deferred
+	//  - immediate
+	//  - exclusive
 	//
-	// https://sqlite.org/pragma.html#pragma_locking_mode
+	// This is the mode used by the write connection; read connections always
+	// use the deferred mode.
+	//
+	// https://sqlite.org/pragma.html#pragma_txlock
 	TransactionLock string
 
 	// ForeighKeys configures the foreign_keys pragma. Value must be one of:
@@ -62,6 +67,9 @@ type Configuration struct {
 	// e.g. 100 => 4kb page size * 100 => 400,000 bytes of memory
 	// e.g. -2000 => 2048000 bytes of memory
 	//
+	// The page cache is per connection, so the total memory used by the
+	// database is this value multiplied by the number of connections.
+	//
 	// https://sqlite.org/pragma.html#pragma_cache_size
 	CacheSize int
 
@@ -89,13 +97,18 @@ type Configuration struct {
 	// Using mmap bypasses the kernel memory buffer, reducing the amount of
 	// memory copying and syscall overhead. Understand the risks before using.
 	//
+	// The memory map is per connection, so the total address space used by
+	// the database is this value multiplied by the number of connections.
+	//
 	// Not used for in-memory databases.
 	//
 	// https://sqlite.org/pragma.html#pragma_mmap_size
 	MemoryMapSize int
 
-	// MaxConnectionsOpen configures the maximum number of concurrent users
-	// of the database.
+	// MaxConnectionsOpen configures the maximum number of concurrent read
+	// connections to the database.
+	//
+	// One additional connection is used for write transactions.
 	MaxConnectionsOpen int
 }
 
@@ -109,8 +122,8 @@ type Configuration struct {
 //   - transaction_lock: immediate
 //   - auto_vacuum: incremental
 //   - synchronous: normal
-//   - cache_size: 64 megabytes
-//   - mmap_size: 64 megabytes
+//   - cache_size: 16 megabytes per connection
+//   - mmap_size: 16 megabytes per connection
 //
 // Do not modify.
 var TypicalConfiguration = &Configuration{
@@ -120,9 +133,9 @@ var TypicalConfiguration = &Configuration{
 	TransactionLock:    "immediate",
 	ForeignKeys:        true,
 	JournalMode:        "WAL",
-	CacheSize:          -65536,
+	CacheSize:          -16384,
 	AutoVacuum:         "incremental",
 	Synchronous:        "normal",
-	MemoryMapSize:      67108864,
+	MemoryMapSize:      16777216,
 	MaxConnectionsOpen: 4,
 }

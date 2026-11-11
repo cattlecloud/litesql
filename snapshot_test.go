@@ -29,7 +29,7 @@ func TestLiteDB_Snapshot(t *testing.T) {
 		id integer primary key,
 		data blob
 	) strict;`
-	_, xerr := ldb.db.ExecContext(ctx, schema)
+	_, xerr := ldb.write.ExecContext(ctx, schema)
 	must.NoError(t, xerr)
 
 	tx, xdone, xerr := ldb.StartWrite(ctx)
@@ -81,7 +81,7 @@ func TestLiteDB_SnapshotRetention(t *testing.T) {
 		id integer primary key,
 		data blob
 	) strict;`
-	_, xerr := ldb.db.ExecContext(ctx, schema)
+	_, xerr := ldb.write.ExecContext(ctx, schema)
 	must.NoError(t, xerr)
 
 	tx, xdone, xerr := ldb.StartWrite(ctx)

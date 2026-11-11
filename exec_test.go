@@ -55,7 +55,7 @@ func testSimple(t *testing.T) *LiteDB {
 	stmt := string(b)
 
 	// execute the sample schema and populate our test database
-	_, xerr := ldb.db.ExecContext(ctx, stmt)
+	_, xerr := ldb.write.ExecContext(ctx, stmt)
 	must.NoError(t, xerr)
 
 	// make sure we close the database once test is complete
