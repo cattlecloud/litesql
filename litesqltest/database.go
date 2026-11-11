@@ -1,21 +1,17 @@
-// Package libsqltest enables convenient testing with a real sqlite3 database
-// backed by memory for use in unit tests.
+// Package litesqltest enables convenient testing with a real sqlite3 database
+// for use in unit tests.
 package litesqltest
 
 import (
+	"path/filepath"
 	"testing"
-	"time"
 
 	"cattlecloud.net/go/litesql"
-	"cattlecloud.net/go/scope"
 )
 
-const timeout = 3 * time.Second
-
-// TestConfiguration provides PRAGMA settings appropriate for an in-memory
-// database used in unit tests. This configuration disables durability features
-// (like WAL mode and synchronous=full) to maximize performance for tests that
-// do not require crash recovery guarantees.
+// TestConfiguration provides PRAGMA settings appropriate for a database used
+// in unit tests. This configuration uses a smaller page cache and disables
+// memory-mapped I/O to keep resource usage low.
 //
 // Do not modify.
 var TestConfiguration = &litesql.Configuration{
@@ -24,21 +20,21 @@ var TestConfiguration = &litesql.Configuration{
 	BusyTimeout:        500,
 	TransactionLock:    "immediate",
 	ForeignKeys:        true,
-	JournalMode:        "OFF",
+	JournalMode:        "WAL",
 	CacheSize:          -4000,
 	AutoVacuum:         "incremental",
 	Synchronous:        "normal",
 	MemoryMapSize:      0,
-	MaxConnectionsOpen: 1,
+	MaxConnectionsOpen: 4,
 }
 
+// Open creates a database in a temporary directory for use in unit tests.
+//
+// The database is backed by a file, which is removed when the test completes.
 func Open(t *testing.T) *litesql.LiteDB {
 	t.Helper()
 
-	_, cancel := scope.WithTTL(t.Context(), timeout)
-	t.Cleanup(cancel)
-
-	const filename = ":memory:"
+	filename := filepath.Join(t.TempDir(), "test.db")
 
 	ldb, oerr := litesql.Open(filename, TestConfiguration)
 	if oerr != nil {
