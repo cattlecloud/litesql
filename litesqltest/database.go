@@ -9,24 +9,26 @@ import (
 	"cattlecloud.net/go/litesql"
 )
 
-// TestConfiguration provides PRAGMA settings appropriate for a database used
-// in unit tests. This configuration uses a smaller page cache and disables
-// memory-mapped I/O to keep resource usage low.
-//
-// Do not modify.
-var TestConfiguration = &litesql.Configuration{
-	Mode:               "rwc",
-	Encoding:           "utf8",
-	BusyTimeout:        500,
-	TransactionLock:    "immediate",
-	ForeignKeys:        true,
-	JournalMode:        "WAL",
-	CacheSize:          -4000,
-	AutoVacuum:         "incremental",
-	Synchronous:        "normal",
-	MemoryMapSize:      0,
-	MaxConnectionsOpen: 4,
-}
+var (
+	// TestConfiguration provides PRAGMA settings appropriate for a database used
+	// in unit tests. This configuration uses a smaller page cache and disables
+	// memory-mapped I/O to keep resource usage low.
+	//
+	// Do not modify.
+	TestConfiguration = &litesql.Configuration{
+		Mode:               "rwc",
+		Encoding:           "utf8",
+		BusyTimeout:        500,
+		TransactionLock:    "immediate",
+		ForeignKeys:        true,
+		JournalMode:        "WAL",
+		CacheSize:          -4000,
+		AutoVacuum:         "incremental",
+		Synchronous:        "normal",
+		MemoryMapSize:      0,
+		MaxConnectionsOpen: 4,
+	}
+)
 
 // Open creates a database in a temporary directory for use in unit tests.
 //

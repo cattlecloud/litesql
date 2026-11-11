@@ -22,7 +22,7 @@ var (
 	// This value has no effect.
 	ReadConsistency = &sql.TxOptions{
 		ReadOnly:  true,
-		Isolation: sql.LevelReadCommitted,
+		Isolation: sql.LevelSnapshot,
 	}
 
 	// WriteConsistency provides options for general use transactional writes.

@@ -36,9 +36,12 @@ defer db.Close()
 #### Starting SQLite transactions
 
 The `*LiteDB` returned by `Open` provides `StartRead` and `StartWrite` for
-starting a read or write transaction. They make use of the `ReadConsistency`
-and `WriteConsistency` package values to indicate isolation levels. A write
-transaction must be ended with a call to `Commit`.
+starting a read or write transaction. Each passes a `sql.TxOptions` value
+(`ReadConsistency` or `WriteConsistency`) to `BeginTx`. The sqlite3 driver
+does not implement transaction isolation levels, so the `Isolation` field is
+ignored; effective isolation is determined by the connection's `_txlock` mode
+(`deferred` for reads, `TransactionLock` for writes). A write transaction must
+be ended with a call to `Commit`.
 
 Read transactions use a pool of connections, and may be used concurrently.
 They are restricted to reading; attempting to write using a read transaction
