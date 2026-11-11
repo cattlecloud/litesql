@@ -109,7 +109,7 @@ type ProgressFunc func(pages, remaining int)
 //	    },
 //	})
 func (ldb *LiteDB) Snapshot(ctx scope.C, opts *SnapshotOptions) error {
-	connection, cerr := ldb.db.Conn(ctx)
+	connection, cerr := ldb.reads.Conn(ctx)
 	if cerr != nil {
 		return fmt.Errorf("unable to acquire sqlite connection: %w", cerr)
 	}

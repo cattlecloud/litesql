@@ -40,6 +40,16 @@ starting a read or write transaction. They make use of the `ReadConsistency`
 and `WriteConsistency` package values to indicate isolation levels. A write
 transaction must be ended with a call to `Commit`.
 
+Read transactions use a pool of connections, and may be used concurrently.
+They are restricted to reading; attempting to write using a read transaction
+results in an error.
+
+Write transactions use a dedicated connection, so that only one write
+transaction is active at a time; a second write transaction waits for the
+first to complete. Because there is a single write connection, a write
+transaction must be committed (i.e. its `CloseFunc` called) once complete;
+otherwise it blocks all subsequent write transactions.
+
 ```go
 // read transaction
 tx, done, xerr := db.StartRead(ctx)
