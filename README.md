@@ -49,8 +49,13 @@ results in an error.
 Write transactions use a dedicated connection, so that only one write
 transaction is active at a time; a second write transaction waits for the
 first to complete. Because there is a single write connection, a write
-transaction must be committed (i.e. its `CloseFunc` called) once complete;
-otherwise it blocks all subsequent write transactions.
+transaction must be committed or rolled back once complete; otherwise it blocks
+all subsequent write transactions.
+
+All transactions started with `StartRead` and `StartWrite` return a `CloseFunc`
+that should be called in a `defer` statement, which executes a rollback of the
+transaction no matter what (which turn into no-ops if the transaction has been
+committed or rolled back already).
 
 ```go
 // read transaction
@@ -84,7 +89,7 @@ for abstracting much of the boiler-plate code for reading rows. By supplying
 a `ScanFunc`, you can fetch row(s) without managing most of the query logic.
 
 ```go
-func example(id int) ([]*record, error) {
+func GetRecords(id int) ([]*record, error) {
   tx, done, xerr := db.StartRead(ctx)
   if xerr != nil {
     return nil, xerr
@@ -169,7 +174,7 @@ err := db.Snapshot(&litesql.SnapshotOptions{
     Directory:  "/path/to/snapshots",        // where to write the snapshot
     Retention:  3,                           // keep last 3 snapshots
     Step:       100,                         // copy 100 pages per step
-    Gap:        1 * time.Millisecond,       // wait between steps
+    Gap:        1 * time.Millisecond,        // small pause between steps
     Progress: func(pages, remaining int) {
         fmt.Printf("progress: %d/%d pages\n", pages-remaining, pages)
     },
