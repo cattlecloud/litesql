@@ -36,12 +36,11 @@ defer db.Close()
 #### Starting SQLite transactions
 
 The `*LiteDB` returned by `Open` provides `StartRead` and `StartWrite` for
-starting a read or write transaction. Each passes a `sql.TxOptions` value
-(`ReadConsistency` or `WriteConsistency`) to `BeginTx`. The sqlite3 driver
-does not implement transaction isolation levels, so the `Isolation` field is
-ignored; effective isolation is determined by the connection's `_txlock` mode
-(`deferred` for reads, `TransactionLock` for writes). A write transaction must
-be ended with a call to `Commit`.
+starting a read or write transaction. Each passes a `sql.TxOptions` value to
+`BeginTx`. The sqlite3 driver does not implement transaction isolation levels,
+so the `Isolation` field is ignored; effective isolation is determined by the
+connection's `_txlock` mode (`deferred` for reads, `TransactionLock` for writes).
+A write transaction must be ended with a call to `Commit`.
 
 Read transactions use a pool of connections, and may be used concurrently.
 They are restricted to reading; attempting to write using a read transaction
@@ -94,14 +93,14 @@ func example(id int) ([]*record, error) {
 
   const statement = `select * from mytable where id > ?`
 
-  f := func(sf litesql.ScanFunc) (*record, error) {
-    r := new(record)
-    err := sf(
+  f := func(scan litesql.ScanFunc) (*record, error) {
+    var r record
+    err := scan(
       // &r.field1
       // &r.field2
       // ...
     )
-    return r, err
+    return &r, err
   }
 
   return litesql.QueryRows(ctx, tx, f, statement, id)
